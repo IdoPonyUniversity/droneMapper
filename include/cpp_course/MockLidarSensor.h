@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include <cpp_course/Config.h>
 #include <cpp_course/IMap3D.h>
 #include <cpp_course/LidarSensor.h>
 #include <cpp_course/PositionSensor.h>

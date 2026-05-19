@@ -7,6 +7,7 @@ find_package(TinyNPY CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 
 add_library(cpp_course
+    src/Config.cpp
     src/MockLidarSensor.cpp
     src/SimulationContext.cpp
     src/SparseTextMap.cpp
@@ -32,6 +33,7 @@ target_link_libraries(mock_lidar_test PRIVATE cpp_course)
 enable_testing()
 
 add_executable(cpp_course_tests
+    tests/ConfigTests.cpp
     tests/MockLidarSensorTests.cpp
     tests/SimulationContextTests.cpp
     tests/SparseTextMapTests.cpp
