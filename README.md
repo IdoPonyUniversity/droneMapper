@@ -98,19 +98,20 @@ Configuration text file rules:
 - Empty lines are ignored.
 - Lines starting with `#` are comments.
 - Some keys, such as `recharge`, may appear multiple times and are collected as lists.
-- Duplicate scalar keys that are not documented as repeatable are recoverable input errors; the last value wins.
-- Unknown keys are recoverable input errors and are ignored.
+- Missing keys use the defaults documented below.
+- Duplicate scalar keys are invalid input and make parsing fail.
+- Unknown keys, malformed non-comment lines, and invalid present values are invalid input and make parsing fail.
 - Numeric distances are in centimeters.
 - Numeric angles are in degrees.
 - Coordinates are written as `x,y,z` in centimeters.
 
-A small manual-run fixture is available under [`sample_inputs/basic/`](sample_inputs/basic/). Parsers will be implemented in Task 4; until then, this README is the source of truth for the concrete config keys and map file format.
+A small manual-run fixture is available under [`sample_inputs/basic/`](sample_inputs/basic/). The parsers in `include/cpp_course/InputParsers.h` implement the concrete config keys and map file format documented here, returning parsed config/map objects and throwing `std::runtime_error` for invalid input.
 
 ### `drone_config.txt`
 
 Drone capability configuration. Distances are in centimeters and angles are in degrees.
 
-| Key | Meaning | Has default if missing |
+| Key | Meaning | Default if missing |
 | --- | --- | --- |
 | `drone_radius_cm` | Exercise 1 drone sphere radius, used directly by movement/collision checks for clearance from obstacles and boundaries. | `1` |
 | `max_rotate_deg` | Maximum absolute rotation per movement request. | `90` |
@@ -144,14 +145,14 @@ lidar_circle_count=2
 
 Mission-specific configuration. Boundaries are inclusive centimeter coordinates in world space.
 
-| Key | Meaning | Recoverable default if missing/bad |
+| Key | Meaning | Default if missing |
 | --- | --- | --- |
 | `boundary_min_x_cm` | Minimum mapped X coordinate. | `0` |
-| `boundary_max_x_cm` | Maximum mapped X coordinate. | map input `size_x_cm - 1` if available, else unrecoverable |
+| `boundary_max_x_cm` | Maximum mapped X coordinate. | map input `size_x_cm - 1` if available, else `0` |
 | `boundary_min_y_cm` | Minimum mapped Y coordinate. | `0` |
-| `boundary_max_y_cm` | Maximum mapped Y coordinate. | map input `size_y_cm - 1` if available, else unrecoverable |
+| `boundary_max_y_cm` | Maximum mapped Y coordinate. | map input `size_y_cm - 1` if available, else `0` |
 | `boundary_min_z_cm` | Minimum mapped height coordinate. | `0` |
-| `boundary_max_z_cm` | Maximum mapped height coordinate. | map input `size_z_cm - 1` if available, else unrecoverable |
+| `boundary_max_z_cm` | Maximum mapped height coordinate. | map input `size_z_cm - 1` if available, else `0` |
 | `initial_x_cm` | Initial drone center X coordinate. | `boundary_min_x_cm` |
 | `initial_y_cm` | Initial drone center Y coordinate. | `boundary_min_y_cm` |
 | `initial_z_cm` | Initial drone center height coordinate. | `boundary_min_z_cm` |
@@ -169,9 +170,9 @@ Validation rules:
 
 - Each min boundary must be less than or equal to its matching max boundary.
 - The initial position must be inside the configured boundaries.
-- `initial_heading_deg` is normalized into `[0, 360)`.
-- Exercise 1 accepts only `resolution_xy_decimals=0` and `resolution_z_decimals=0`; other values are unrecoverable unsupported-resolution errors.
-- Bad `recharge` lines are recoverable input errors and are ignored.
+- `initial_heading_deg` must be in the range `[0, 360]`.
+- Exercise 1 accepts only `resolution_xy_decimals=0` and `resolution_z_decimals=0`; other values are invalid input.
+- Bad `recharge` lines are invalid input.
 
 Example:
 

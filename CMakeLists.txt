@@ -8,6 +8,7 @@ find_package(GTest CONFIG REQUIRED)
 
 add_library(cpp_course
     src/Config.cpp
+    src/InputParsers.cpp
     src/MockLidarSensor.cpp
     src/SimulationContext.cpp
     src/SparseTextMap.cpp
@@ -34,6 +35,7 @@ enable_testing()
 
 add_executable(cpp_course_tests
     tests/ConfigTests.cpp
+    tests/InputParsersTests.cpp
     tests/MockLidarSensorTests.cpp
     tests/SimulationContextTests.cpp
     tests/SparseTextMapTests.cpp
