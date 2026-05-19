@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 project(cpp_course LANGUAGES CXX)
 
 find_package(mp-units CONFIG REQUIRED)
-find_package(tinynpy CONFIG REQUIRED)
+find_package(TinyNPY CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 
 add_library(cpp_course
