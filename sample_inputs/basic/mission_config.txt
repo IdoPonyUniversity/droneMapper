@@ -1,0 +1,12 @@
+boundary_min_x_cm=0
+boundary_max_x_cm=4
+boundary_min_y_cm=0
+boundary_max_y_cm=4
+boundary_min_z_cm=0
+boundary_max_z_cm=2
+initial_x_cm=1
+initial_y_cm=1
+initial_z_cm=1
+initial_heading_deg=0
+resolution_xy_decimals=0
+resolution_z_decimals=0

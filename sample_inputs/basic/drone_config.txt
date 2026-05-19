@@ -1,0 +1,8 @@
+drone_radius_cm=1
+max_rotate_deg=90
+max_advance_cm=1
+max_elevate_cm=1
+lidar_z_min_cm=1
+lidar_z_max_cm=5
+lidar_circle_spacing_cm=1
+lidar_circle_count=2

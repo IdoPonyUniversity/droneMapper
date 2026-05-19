@@ -84,11 +84,141 @@ Or run the test executable directly:
 
 `Units.h` defines the physical units used by the project, including X/Y/Z lengths and horizontal/altitude angles.
 
-## Map Format
+## Assignment File Formats
 
-The sample maps are stored in `data_maps/` as `.npy` files.
+The assignment fixes the file names but lets us choose the formats. This project uses:
 
-Each map is expected to be a row-major 3D array with shape `[X, Y, Z]`. A value of `0` means empty space. A non-zero value means occupied space.
+- simple line-oriented `key=value` text for `drone_config.txt` and `mission_config.txt`.
+- binary NumPy `.npy` array data for `map_input.txt` and `map_output.txt`.
+
+Configuration text file rules:
+
+- One entry per line.
+- Leading/trailing whitespace around the key and value is ignored.
+- Empty lines are ignored.
+- Lines starting with `#` are comments.
+- Some keys, such as `recharge`, may appear multiple times and are collected as lists.
+- Duplicate scalar keys that are not documented as repeatable are recoverable input errors; the last value wins.
+- Unknown keys are recoverable input errors and are ignored.
+- Numeric distances are in centimeters.
+- Numeric angles are in degrees.
+- Coordinates are written as `x,y,z` in centimeters.
+
+A small manual-run fixture is available under [`sample_inputs/basic/`](sample_inputs/basic/). Parsers will be implemented in Task 4; until then, this README is the source of truth for the concrete config keys and map file format.
+
+### `drone_config.txt`
+
+Drone capability configuration. Distances are in centimeters and angles are in degrees.
+
+| Key | Meaning | Has default if missing |
+| --- | --- | --- |
+| `drone_radius_cm` | Exercise 1 drone sphere radius, used directly by movement/collision checks for clearance from obstacles and boundaries. | `1` |
+| `max_rotate_deg` | Maximum absolute rotation per movement request. | `90` |
+| `max_advance_cm` | Maximum absolute horizontal advance per movement request. | `1` |
+| `max_elevate_cm` | Maximum absolute vertical movement per movement request. | `1` |
+| `lidar_z_min_cm` | Minimum accurate LiDAR distance. Hits closer than this are returned with distance `0`. | `1` |
+| `lidar_z_max_cm` | Maximum LiDAR detection distance. | `10` |
+| `lidar_circle_spacing_cm` | LiDAR beam-circle spacing `D` measured at `Z-min`. Circle `n` radius is `n * D`. | `1` |
+| `lidar_circle_count` | Number of LiDAR circles, including circle `0`. | `1` |
+
+Validation rules:
+
+- `drone_radius_cm` and movement limit values must be positive; `lidar_z_min_cm` may be `0`.
+- `lidar_z_max_cm` must be greater than `lidar_z_min_cm`.
+- `lidar_circle_count` must be at least `1`.
+
+Example:
+
+```text
+drone_radius_cm=1
+max_rotate_deg=90
+max_advance_cm=1
+max_elevate_cm=1
+lidar_z_min_cm=1
+lidar_z_max_cm=5
+lidar_circle_spacing_cm=1
+lidar_circle_count=2
+```
+
+### `mission_config.txt`
+
+Mission-specific configuration. Boundaries are inclusive centimeter coordinates in world space.
+
+| Key | Meaning | Recoverable default if missing/bad |
+| --- | --- | --- |
+| `boundary_min_x_cm` | Minimum mapped X coordinate. | `0` |
+| `boundary_max_x_cm` | Maximum mapped X coordinate. | map input `size_x_cm - 1` if available, else unrecoverable |
+| `boundary_min_y_cm` | Minimum mapped Y coordinate. | `0` |
+| `boundary_max_y_cm` | Maximum mapped Y coordinate. | map input `size_y_cm - 1` if available, else unrecoverable |
+| `boundary_min_z_cm` | Minimum mapped height coordinate. | `0` |
+| `boundary_max_z_cm` | Maximum mapped height coordinate. | map input `size_z_cm - 1` if available, else unrecoverable |
+| `initial_x_cm` | Initial drone center X coordinate. | `boundary_min_x_cm` |
+| `initial_y_cm` | Initial drone center Y coordinate. | `boundary_min_y_cm` |
+| `initial_z_cm` | Initial drone center height coordinate. | `boundary_min_z_cm` |
+| `initial_heading_deg` | Initial XY heading. `0` is east, `90` is south, `180` is west, `270` is north. | `0` |
+| `resolution_xy_decimals` | Required decimal places after the dot for X/Y coordinates. Exercise 1 supports only `0` for 1 cm cells. | `0` |
+| `resolution_z_decimals` | Required decimal places after the dot for height coordinates. Exercise 1 supports only `0` for 1 cm cells. | `0` |
+
+Optional repeated key:
+
+| Key | Meaning |
+| --- | --- |
+| `recharge` | Placeholder for future recharge positions, as `x,y,z`. Exercise 1 doesn't use this key because the battery is infinite. |
+
+Validation rules:
+
+- Each min boundary must be less than or equal to its matching max boundary.
+- The initial position must be inside the configured boundaries.
+- `initial_heading_deg` is normalized into `[0, 360)`.
+- Exercise 1 accepts only `resolution_xy_decimals=0` and `resolution_z_decimals=0`; other values are unrecoverable unsupported-resolution errors.
+- Bad `recharge` lines are recoverable input errors and are ignored.
+
+Example:
+
+```text
+boundary_min_x_cm=0
+boundary_max_x_cm=4
+boundary_min_y_cm=0
+boundary_max_y_cm=4
+boundary_min_z_cm=0
+boundary_max_z_cm=2
+initial_x_cm=1
+initial_y_cm=1
+initial_z_cm=1
+initial_heading_deg=0
+resolution_xy_decimals=0
+resolution_z_decimals=0
+```
+
+### `map_input.txt` and `map_output.txt`
+
+These files use the binary NumPy `.npy` format.
+
+`map_input.txt` is the simulator ground-truth building map:
+
+- Row-major 3D NumPy array with shape `[X, Y, Z]`.
+- One voxel represents `1 cm` in each dimension.
+- Use signed 32-bit integers (`int32`) so `map_output.txt` can use the same container format for negative values.
+- Allowed input values are:
+  - `0`: empty
+  - `1`: occupied
+
+`map_output.txt` is the drone-produced map and uses the same `.npy` container format:
+
+- Shape should match the mapped grid used for `map_input.txt`.
+- Allowed output values are:
+  - `0`: mapped empty
+  - `1`: mapped occupied
+  - `-1`: not mapped, inside mission mapping boundaries
+  - `-2`: not mapped because outside mission mapping boundaries
+- If the array covers a larger area than the mission boundaries, every in-array cell outside the mission boundaries must contain `-2`.
+- Coordinates outside the declared array shape are also interpreted as `-2` by the drone-visible map API.
+
+## Current `.npy` Map Support
+
+The starter LiDAR example still supports the original `.npy` maps stored in `data_maps/`.
+
+Each `.npy` map is expected to be a row-major 3D array with shape `[X, Y, Z]`. A value of `0` means empty space. A non-zero value means occupied space.
 
 Coordinates are interpreted in centimeters. For example, the position `(2 cm, 4 cm, 2 cm)` maps to voxel index `(2, 4, 2)`.
 
