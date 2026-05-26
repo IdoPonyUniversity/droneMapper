@@ -29,24 +29,39 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(TinyNPY)
 
-# --- Core library: everything except main() lives here so tests can link it.
-add_library(drone_mapper_lib
-  src/Config.cpp
-  src/InputParsers.cpp
-  src/MockLidarSensor.cpp
-  src/SimulationContext.cpp
-  src/SparseTextMap.cpp
-  src/VoxelGrid.cpp
+# --- Shared production sources. The app is intentionally a single executable
+# target; tests compile these same sources directly instead of linking a
+# repository library target.
+set(DRONE_MAPPER_SOURCE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/app
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/config
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/io
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/map
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/movement
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/sensors
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/simulation
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/drone
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/drone/algorithms
 )
-target_include_directories(drone_mapper_lib PUBLIC src)
-target_compile_features(drone_mapper_lib PUBLIC cxx_std_20)
-target_link_libraries(drone_mapper_lib PUBLIC mp-units::mp-units TinyNPY)
+
+set(DRONE_MAPPER_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/config/Config.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/io/InputParsers.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/sensors/MockLidarSensor.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/simulation/SimulationContext.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/map/SparseTextMap.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/map/VoxelGrid.cpp
+)
 
 # --- Assignment executable
 add_executable(drone_mapper
-  src/main.cpp
+  ${DRONE_MAPPER_SOURCES}
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/app/main.cpp
 )
-target_link_libraries(drone_mapper PRIVATE drone_mapper_lib)
+target_include_directories(drone_mapper PRIVATE ${DRONE_MAPPER_SOURCE_DIRS})
+target_compile_features(drone_mapper PRIVATE cxx_std_20)
+target_link_libraries(drone_mapper PRIVATE mp-units::mp-units TinyNPY)
 
 # --- Tests
 enable_testing()

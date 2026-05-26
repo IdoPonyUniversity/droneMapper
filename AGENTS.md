@@ -4,14 +4,19 @@
 
 This repository is a C++20 CMake project for a mock LiDAR sensor over 3D voxel maps.
 
-- `src/`: public headers, interfaces, units, configuration domain models, class declarations, implementations for the library target `drone_mapper_lib`, and the current `main.cpp` entry point for the `drone_mapper` executable.
+- `src/app/`: executable entry point (`main.cpp`) and future simulator runner.
+- `src/core/`: strong units and future shared geometry helpers.
+- `src/config/`: Assignment 1 configuration domain models and validation.
+- `src/io/`: fixed input parsers and future map text I/O.
+- `src/map/`: map interfaces and ground-truth map implementations.
+- `src/sensors/`: sensor interfaces plus sensor mocks.
+- `src/movement/`, `src/simulation/`, and `src/drone/`: future movement interface, simulator truth state/drivers, and drone algorithm code.
 - `tests/`: GoogleTest unit tests and shared helpers.
-- `examples/`: runnable sample programs, currently `mock_lidar_test.cpp`.
-- `data_maps/`: sample `.npy` voxel maps used by examples and tests.
+- `data_maps/`: sample `.npy` voxel maps used by tests.
 - `sample_inputs/`: small Assignment 1 input fixtures for future manual `drone_mapper` runs.
 - `.devcontainer/` and `CMakeLists.txt`: container and FetchContent-based dependency setup.
 
-Keep public API changes in `src/` paired with focused tests in `tests/`. `src/Config.h` and `src/Config.cpp` hold the Assignment 1 `DroneConfig`, `MissionConfig`, `LidarConfig`, boundary, resolution, and validation domain models; `DroneConfig::drone_radius` is the Exercise 1 sphere source of truth for clearance and collision checks. `src/InputParsers.h` and `src/InputParsers.cpp` parse the Assignment 1 fixed input files with documented defaults for missing config keys. Malformed lines, unknown keys, duplicate scalar keys, invalid present values, and invalid map contents throw `std::runtime_error` so callers can catch and finish `main` normally.
+Keep public API changes in `src/` paired with focused tests in `tests/`. `src/config/Config.h` and `src/config/Config.cpp` hold the Assignment 1 `DroneConfig`, `MissionConfig`, `LidarConfig`, boundary, resolution, and validation domain models; `DroneConfig::drone_radius` is the Exercise 1 sphere source of truth for clearance and collision checks. `src/io/InputParsers.h` and `src/io/InputParsers.cpp` parse the Assignment 1 fixed input files with documented defaults for missing config keys. Malformed lines, unknown keys, duplicate scalar keys, invalid present values, and invalid map contents throw `std::runtime_error` so callers can catch and finish `main` normally.
 
 ## Build, Test, and Development Commands
 
@@ -27,7 +32,7 @@ Configures `build/` using FetchContent for dependencies.
 cmake --build build
 ```
 
-Builds the `drone_mapper` executable, `drone_mapper_lib` library, and `drone_mapper_tests`.
+Builds the single `drone_mapper` executable and `drone_mapper_tests` (tests compile the production sources directly; there is no project library target).
 
 ```bash
 ctest --test-dir build --output-on-failure
@@ -35,11 +40,6 @@ ctest --test-dir build --output-on-failure
 
 Runs the registered GoogleTest suite and prints failing test output.
 
-```bash
-./build/mock_lidar_test data_maps/five_voxels_y4_pattern.npy
-```
-
-Runs the example executable against a sample voxel map.
 
 ## Coding Style & Naming Conventions
 
@@ -55,6 +55,6 @@ Recent commits use short, imperative summaries, for example `Remove positionAfte
 
 ## Agent-Specific Instructions
 
-Do not rewrite unrelated files or generated outputs. Preserve sample map files unless the task explicitly requires changing test fixtures. When adding dependencies, update `CMakeLists.txt` with appropriate `FetchContent_Declare` and link targets.
+Do not rewrite unrelated files or generated outputs. Preserve sample map files unless the task explicitly requires changing test fixtures. When adding dependencies, update `CMakeLists.txt` with appropriate `FetchContent_Declare` and link targets. When adding production `.cpp` files, add them to `DRONE_MAPPER_SOURCES` so both `drone_mapper` and `drone_mapper_tests` compile them.
 Keep `tasks.md` updated when assignment implementation status or task breakdown changes.
 ALWAYS READ assignment.md - these are the instructions for this project.
