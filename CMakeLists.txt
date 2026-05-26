@@ -1,56 +1,65 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.14)
+project(drone_mapper)
 
-project(cpp_course LANGUAGES CXX)
+include(FetchContent)
 
-find_package(mp-units CONFIG REQUIRED)
-find_package(TinyNPY CONFIG REQUIRED)
-find_package(GTest CONFIG REQUIRED)
+# --- fmt (needed by mp-units)
+FetchContent_Declare(
+  fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG        10.2.1
+)
+FetchContent_MakeAvailable(fmt)
 
-add_library(cpp_course
-    src/Config.cpp
-    src/InputParsers.cpp
-    src/MockLidarSensor.cpp
-    src/SimulationContext.cpp
-    src/SparseTextMap.cpp
-    src/VoxelGrid.cpp
+# --- mp-units library
+set(MP_UNITS_API_CONTRACTS NONE CACHE STRING "" FORCE)
+FetchContent_Declare(
+  mp-units
+  GIT_REPOSITORY https://github.com/mpusz/mp-units.git
+  GIT_TAG        v2.5.0
+  SOURCE_SUBDIR  src
+)
+FetchContent_MakeAvailable(mp-units)
+
+# --- TinyNPY
+FetchContent_Declare(
+  TinyNPY
+  GIT_REPOSITORY https://github.com/cdcseacave/TinyNPY.git
+  GIT_TAG        v1.1
+)
+FetchContent_MakeAvailable(TinyNPY)
+
+# --- Shared production sources. The app is intentionally a single executable
+# target; tests compile these same sources directly instead of linking a
+# repository library target.
+set(DRONE_MAPPER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+file(GLOB_RECURSE DRONE_MAPPER_SOURCES CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
+list(REMOVE_ITEM DRONE_MAPPER_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/app/main.cpp
 )
 
-target_compile_features(cpp_course PUBLIC cxx_std_20)
-
-target_include_directories(cpp_course
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+# --- Assignment executable
+add_executable(drone_mapper
+  ${DRONE_MAPPER_SOURCES}
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/app/main.cpp
 )
+target_include_directories(drone_mapper PRIVATE ${DRONE_MAPPER_INCLUDE_DIR})
+target_compile_features(drone_mapper PRIVATE cxx_std_20)
+target_link_libraries(drone_mapper PRIVATE mp-units::mp-units TinyNPY)
 
-target_link_libraries(cpp_course
-    PUBLIC
-        mp-units::mp-units
-        TinyNPY::TinyNPY
-)
-
-add_executable(mock_lidar_test examples/mock_lidar_test.cpp)
-target_link_libraries(mock_lidar_test PRIVATE cpp_course)
-
+# --- Tests
 enable_testing()
+option(DRONE_MAPPER_BUILD_TESTS "Build unit tests" ON)
 
-add_executable(cpp_course_tests
-    tests/ConfigTests.cpp
-    tests/InputParsersTests.cpp
-    tests/MockLidarSensorTests.cpp
-    tests/SimulationContextTests.cpp
-    tests/SparseTextMapTests.cpp
-    tests/VoxelGridTests.cpp
-)
-target_link_libraries(cpp_course_tests
-    PRIVATE
-        cpp_course
-        GTest::gtest
-        GTest::gtest_main
-)
-target_compile_definitions(cpp_course_tests
-    PRIVATE
-        CPP_COURSE_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
-)
-
-include(GoogleTest)
-gtest_discover_tests(cpp_course_tests)
+if(DRONE_MAPPER_BUILD_TESTS)
+  FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG        v1.17.0
+  )
+  FetchContent_MakeAvailable(googletest)
+  add_subdirectory(tests)
+endif()

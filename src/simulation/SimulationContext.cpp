@@ -1,11 +1,11 @@
-#include <cpp_course/SimulationContext.h>
+#include "simulation/SimulationContext.h"
 
 #include <mp-units/systems/si/math.h>
 
 #include <algorithm>
 #include <cmath>
 
-namespace cpp_course {
+namespace drone_mapper {
 
 namespace {
 
@@ -103,4 +103,4 @@ bool SimulationContext::wouldCollide(Position3D candidate, PhysicalLength radius
     return false;
 }
 
-} // namespace cpp_course
+} // namespace drone_mapper

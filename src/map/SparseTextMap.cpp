@@ -1,9 +1,9 @@
-#include <cpp_course/SparseTextMap.h>
+#include "map/SparseTextMap.h"
 
 #include <cmath>
 #include <optional>
 
-namespace cpp_course {
+namespace drone_mapper {
 
 namespace {
 
@@ -53,4 +53,4 @@ std::uint64_t SparseTextMap::pack(std::size_t x, std::size_t y, std::size_t z) n
          | ((static_cast<std::uint64_t>(z) & kMask) << 42);
 }
 
-} // namespace cpp_course
+} // namespace drone_mapper

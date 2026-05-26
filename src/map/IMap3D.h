@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cpp_course/Units.h>
+#include "core/Units.h"
 
-namespace cpp_course {
+namespace drone_mapper {
 
 // Read-only 3D occupancy map interface used by LiDAR implementations.
 class IMap3D {
@@ -14,4 +14,4 @@ public:
     [[nodiscard]] virtual int get(const Position3D& pos) const = 0;
 };
 
-} // namespace cpp_course
+} // namespace drone_mapper

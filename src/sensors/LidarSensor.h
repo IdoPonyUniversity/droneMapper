@@ -2,9 +2,9 @@
 
 #include <vector>
 
-#include <cpp_course/Units.h>
+#include "core/Units.h"
 
-namespace cpp_course {
+namespace drone_mapper {
 
 // A single LiDAR return. The angle is relative to the requested scan orientation.
 struct LidarHit {
@@ -22,4 +22,4 @@ public:
     [[nodiscard]] virtual ScanResults scan(Orientation scan_orientation) const = 0;
 };
 
-} // namespace cpp_course
+} // namespace drone_mapper

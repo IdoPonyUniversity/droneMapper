@@ -1,14 +1,14 @@
 # Tests
 
-This folder contains the unit tests for the mock LiDAR project. The tests are written with GoogleTest and are built as part of the `cpp_course_tests` executable.
+This folder contains the unit tests for the mock LiDAR project. The tests are written with GoogleTest and are built as part of the `drone_mapper_tests` executable.
 
 ## Running the Tests
 
 From the project root, inside the provided container, run:
 
 ```bash
-cmake --preset default
-cmake --build --preset default
+cmake -B build
+cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
@@ -63,7 +63,7 @@ These tests load the sample `.npy` maps from `data_maps/` and check that `VoxelG
 - Returns `0` for negative or out-of-bounds coordinates.
 - Supports both `int` and `uint8_t` map values.
 
-The tests use `CPP_COURSE_SOURCE_DIR`, which is defined in `CMakeLists.txt`, to locate the sample map files regardless of the current working directory.
+The tests use `DRONE_MAPPER_SOURCE_DIR`, which is defined in `CMakeLists.txt`, to locate the sample map files regardless of the current working directory.
 
 ## TestHelpers.h
 

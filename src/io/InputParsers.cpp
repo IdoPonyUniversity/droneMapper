@@ -1,12 +1,14 @@
-#include <cpp_course/InputParsers.h>
+#include "io/InputParsers.h"
 
-#include <cpp_course/VoxelGrid.h>
+#include "map/VoxelGrid.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <fstream>
 #include <limits>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -15,7 +17,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace cpp_course {
+namespace drone_mapper {
 
 namespace {
 
@@ -123,17 +125,6 @@ using ScalarMap = std::unordered_map<std::string, KeyValueLine>;
     }
 }
 
-[[nodiscard]] std::string join_errors(const std::vector<std::string>& errors) {
-    std::ostringstream stream;
-    for (std::size_t i = 0U; i < errors.size(); ++i) {
-        if (i != 0U) {
-            stream << "; ";
-        }
-        stream << errors[i];
-    }
-    return stream.str();
-}
-
 [[nodiscard]] ScalarMap collect_scalars(const std::filesystem::path& path,
                                         const std::vector<KeyValueLine>& lines,
                                         const std::unordered_set<std::string>& scalar_keys,
@@ -162,12 +153,45 @@ using ScalarMap = std::unordered_map<std::string, KeyValueLine>;
     return scalars;
 }
 
-[[nodiscard]] const KeyValueLine* find_scalar(const ScalarMap& scalars, const std::string& key) noexcept {
-    const auto found = scalars.find(key);
+[[nodiscard]] const KeyValueLine* find_scalar(const ScalarMap& scalars, std::string_view key) {
+    const auto found = scalars.find(std::string(key));
     if (found == scalars.end()) {
         return nullptr;
     }
     return &found->second;
+}
+
+template <typename Config>
+struct ScalarField {
+    std::string_view key;
+    void (*apply)(Config&, const std::filesystem::path&, const KeyValueLine&);
+};
+
+template <typename Config, std::size_t FieldCount>
+void insert_scalar_keys(std::unordered_set<std::string>& keys,
+                        const std::array<ScalarField<Config>, FieldCount>& fields) {
+    for (const ScalarField<Config>& field : fields) {
+        keys.emplace(field.key);
+    }
+}
+
+template <typename Config, std::size_t FieldCount>
+[[nodiscard]] std::unordered_set<std::string> scalar_keys_for(const std::array<ScalarField<Config>, FieldCount>& fields) {
+    std::unordered_set<std::string> keys;
+    insert_scalar_keys(keys, fields);
+    return keys;
+}
+
+template <typename Config, std::size_t FieldCount>
+void apply_fields(const std::filesystem::path& path,
+                  const ScalarMap& scalars,
+                  Config& config,
+                  const std::array<ScalarField<Config>, FieldCount>& fields) {
+    for (const ScalarField<Config>& field : fields) {
+        if (const KeyValueLine* line = find_scalar(scalars, field.key)) {
+            field.apply(config, path, *line);
+        }
+    }
 }
 
 [[nodiscard]] double required_double(const std::filesystem::path& path, const KeyValueLine& line) {
@@ -242,109 +266,110 @@ using ScalarMap = std::unordered_map<std::string, KeyValueLine>;
     };
 }
 
-[[nodiscard]] double x_centimeters(XLength length) noexcept {
-    return length.force_numerical_value_in(cm);
-}
-
-[[nodiscard]] double y_centimeters(YLength length) noexcept {
-    return length.force_numerical_value_in(cm);
-}
-
-[[nodiscard]] double z_centimeters(ZLength length) noexcept {
-    return length.force_numerical_value_in(cm);
-}
-
 [[nodiscard]] double max_index_coordinate(std::size_t size) noexcept {
     return size == 0U ? 0.0 : static_cast<double>(size - 1U);
 }
 
-void validate_boundaries_against_map_dimensions(const std::filesystem::path& path,
-                                                const MissionConfig& config,
-                                                const MapDimensions& dimensions) {
-    if (x_centimeters(config.boundaries.min_x) < 0.0 || x_centimeters(config.boundaries.max_x) > max_index_coordinate(dimensions.x_size)) {
-        throw_input_error(path, 0U, "X boundaries must fit within provided map dimensions");
-    }
-    if (y_centimeters(config.boundaries.min_y) < 0.0 || y_centimeters(config.boundaries.max_y) > max_index_coordinate(dimensions.y_size)) {
-        throw_input_error(path, 0U, "Y boundaries must fit within provided map dimensions");
-    }
-    if (z_centimeters(config.boundaries.min_z) < 0.0 || z_centimeters(config.boundaries.max_z) > max_index_coordinate(dimensions.z_size)) {
-        throw_input_error(path, 0U, "Z boundaries must fit within provided map dimensions");
+template <typename Callable>
+void validate_config_file(const std::filesystem::path& path, Callable&& validate) {
+    try {
+        validate();
+    } catch (const std::runtime_error& error) {
+        throw_input_error(path, 0U, error.what());
     }
 }
 
 } // namespace
 
 DroneConfig parse_drone_config(const std::filesystem::path& path) {
-    const std::vector<std::string> known_keys{
-        "drone_radius_cm",
-        "max_rotate_deg",
-        "max_advance_cm",
-        "max_elevate_cm",
-        "lidar_z_min_cm",
-        "lidar_z_max_cm",
-        "lidar_circle_spacing_cm",
-        "lidar_circle_count",
-    };
-    const std::unordered_set<std::string> scalar_keys(known_keys.begin(), known_keys.end());
+    const std::array<ScalarField<DroneConfig>, 8U> fields{{
+        {"drone_radius_cm", [](DroneConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.drone_radius = required_positive_double(input_path, line, "distance") * cm;
+         }},
+        {"max_rotate_deg", [](DroneConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.max_rotate = required_positive_double(input_path, line, "angle") * horizontal_angle[deg];
+         }},
+        {"max_advance_cm", [](DroneConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.max_advance = required_positive_double(input_path, line, "distance") * cm;
+         }},
+        {"max_elevate_cm", [](DroneConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.max_elevate = required_positive_double(input_path, line, "distance") * cm;
+         }},
+        {"lidar_z_min_cm", [](DroneConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.lidar.beam_length_min = required_non_negative_double(input_path, line, "distance") * cm;
+         }},
+        {"lidar_z_max_cm", [](DroneConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.lidar.beam_length_max = required_positive_double(input_path, line, "distance") * cm;
+         }},
+        {"lidar_circle_spacing_cm", [](DroneConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.lidar.circle_spacing = required_positive_double(input_path, line, "distance") * cm;
+         }},
+        {"lidar_circle_count", [](DroneConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.lidar.fov_circles = required_positive_size(input_path, line);
+         }},
+    }};
 
     const std::vector<KeyValueLine> lines = read_key_value_lines(path);
-    const ScalarMap scalars = collect_scalars(path, lines, scalar_keys, {});
+    const ScalarMap scalars = collect_scalars(path, lines, scalar_keys_for(fields), {});
 
     DroneConfig config;
-    if (const KeyValueLine* line = find_scalar(scalars, "drone_radius_cm")) {
-        config.drone_radius = required_positive_double(path, *line, "distance") * cm;
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "max_rotate_deg")) {
-        config.max_rotate = required_positive_double(path, *line, "angle") * horizontal_angle[deg];
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "max_advance_cm")) {
-        config.max_advance = required_positive_double(path, *line, "distance") * cm;
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "max_elevate_cm")) {
-        config.max_elevate = required_positive_double(path, *line, "distance") * cm;
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "lidar_z_min_cm")) {
-        config.lidar.beam_length_min = required_non_negative_double(path, *line, "distance") * cm;
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "lidar_z_max_cm")) {
-        config.lidar.beam_length_max = required_positive_double(path, *line, "distance") * cm;
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "lidar_circle_spacing_cm")) {
-        config.lidar.circle_spacing = required_positive_double(path, *line, "distance") * cm;
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "lidar_circle_count")) {
-        config.lidar.fov_circles = required_positive_size(path, *line);
-    }
+    apply_fields(path, scalars, config, fields);
 
-    const std::vector<std::string> validation_errors = config.validate();
-    if (!validation_errors.empty()) {
-        throw_input_error(path, 0U, "invalid drone configuration: " + join_errors(validation_errors));
-    }
+    validate_config_file(path, [&config] {
+        config.validate();
+    });
 
     return config;
 }
 
 MissionConfig parse_mission_config(const std::filesystem::path& path, std::optional<MapDimensions> map_dimensions) {
-    const std::vector<std::string> known_scalar_keys{
-        "boundary_min_x_cm",
-        "boundary_max_x_cm",
-        "boundary_min_y_cm",
-        "boundary_max_y_cm",
-        "boundary_min_z_cm",
-        "boundary_max_z_cm",
-        "initial_x_cm",
-        "initial_y_cm",
-        "initial_z_cm",
-        "initial_heading_deg",
-        "resolution_xy_decimals",
-        "resolution_z_decimals",
-    };
-    const std::unordered_set<std::string> scalar_keys(known_scalar_keys.begin(), known_scalar_keys.end());
-    const std::unordered_set<std::string> repeatable_keys{"recharge"};
+    const std::array<ScalarField<MissionConfig>, 6U> boundary_fields{{
+        {"boundary_min_x_cm", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.boundaries.min_x = required_double(input_path, line) * x_extent[cm];
+         }},
+        {"boundary_max_x_cm", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.boundaries.max_x = required_double(input_path, line) * x_extent[cm];
+         }},
+        {"boundary_min_y_cm", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.boundaries.min_y = required_double(input_path, line) * y_extent[cm];
+         }},
+        {"boundary_max_y_cm", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.boundaries.max_y = required_double(input_path, line) * y_extent[cm];
+         }},
+        {"boundary_min_z_cm", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.boundaries.min_z = required_double(input_path, line) * z_extent[cm];
+         }},
+        {"boundary_max_z_cm", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.boundaries.max_z = required_double(input_path, line) * z_extent[cm];
+         }},
+    }};
+    const std::array<ScalarField<MissionConfig>, 6U> mission_fields{{
+        {"initial_x_cm", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.initial_position.x = required_double(input_path, line) * x_extent[cm];
+         }},
+        {"initial_y_cm", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.initial_position.y = required_double(input_path, line) * y_extent[cm];
+         }},
+        {"initial_z_cm", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.initial_position.z = required_double(input_path, line) * z_extent[cm];
+         }},
+        {"initial_heading_deg", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.initial_heading.horizontal = required_double(input_path, line) * horizontal_angle[deg];
+         }},
+        {"resolution_xy_decimals", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.resolution.xy_decimal_places = required_int(input_path, line);
+         }},
+        {"resolution_z_decimals", [](MissionConfig& config, const std::filesystem::path& input_path, const KeyValueLine& line) {
+             config.resolution.z_decimal_places = required_int(input_path, line);
+         }},
+    }};
+
+    std::unordered_set<std::string> scalar_keys = scalar_keys_for(boundary_fields);
+    insert_scalar_keys(scalar_keys, mission_fields);
 
     std::vector<KeyValueLine> recharge_lines;
     const std::vector<KeyValueLine> lines = read_key_value_lines(path);
-    const ScalarMap scalars = collect_scalars(path, lines, scalar_keys, repeatable_keys, &recharge_lines);
+    const ScalarMap scalars = collect_scalars(path, lines, scalar_keys, {"recharge"}, &recharge_lines);
 
     MissionConfig config;
     if (map_dimensions) {
@@ -353,77 +378,22 @@ MissionConfig parse_mission_config(const std::filesystem::path& path, std::optio
         config.boundaries.max_z = max_index_coordinate(map_dimensions->z_size) * z_extent[cm];
     }
 
-    if (const KeyValueLine* line = find_scalar(scalars, "boundary_min_x_cm")) {
-        config.boundaries.min_x = required_double(path, *line) * x_extent[cm];
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "boundary_max_x_cm")) {
-        config.boundaries.max_x = required_double(path, *line) * x_extent[cm];
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "boundary_min_y_cm")) {
-        config.boundaries.min_y = required_double(path, *line) * y_extent[cm];
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "boundary_max_y_cm")) {
-        config.boundaries.max_y = required_double(path, *line) * y_extent[cm];
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "boundary_min_z_cm")) {
-        config.boundaries.min_z = required_double(path, *line) * z_extent[cm];
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "boundary_max_z_cm")) {
-        config.boundaries.max_z = required_double(path, *line) * z_extent[cm];
-    }
-
+    apply_fields(path, scalars, config, boundary_fields);
     config.initial_position = {
         config.boundaries.min_x,
         config.boundaries.min_y,
         config.boundaries.min_z,
     };
-    if (const KeyValueLine* line = find_scalar(scalars, "initial_x_cm")) {
-        config.initial_position.x = required_double(path, *line) * x_extent[cm];
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "initial_y_cm")) {
-        config.initial_position.y = required_double(path, *line) * y_extent[cm];
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "initial_z_cm")) {
-        config.initial_position.z = required_double(path, *line) * z_extent[cm];
-    }
-
-    if (const KeyValueLine* line = find_scalar(scalars, "initial_heading_deg")) {
-        const double initial_heading = required_double(path, *line);
-        if (initial_heading < 0.0 || initial_heading > 360.0) {
-            throw_input_error(path, line->line_number, "'initial_heading_deg' must be in the range [0, 360]");
-        }
-        config.initial_heading.horizontal = initial_heading * horizontal_angle[deg];
-    }
-
-    if (const KeyValueLine* line = find_scalar(scalars, "resolution_xy_decimals")) {
-        config.resolution.xy_decimal_places = required_int(path, *line);
-    }
-    if (const KeyValueLine* line = find_scalar(scalars, "resolution_z_decimals")) {
-        config.resolution.z_decimal_places = required_int(path, *line);
-    }
-
-    const std::vector<std::string> boundary_errors = config.boundaries.validate();
-    if (!boundary_errors.empty()) {
-        throw_input_error(path, 0U, "invalid mission boundaries: " + join_errors(boundary_errors));
-    }
-
-    if (map_dimensions) {
-        validate_boundaries_against_map_dimensions(path, config, *map_dimensions);
-    }
-
-    if (!config.boundaries.contains(config.initial_position)) {
-        throw_input_error(path, 0U, "initial position must be inside mission boundaries");
-    }
+    apply_fields(path, scalars, config, mission_fields);
 
     for (const KeyValueLine& line : recharge_lines) {
         const std::vector<double> coordinates = required_coordinate_triplet(path, line);
         config.recharge_positions.push_back(make_position(coordinates[0], coordinates[1], coordinates[2]));
     }
 
-    const std::vector<std::string> validation_errors = config.validate();
-    if (!validation_errors.empty()) {
-        throw_input_error(path, 0U, "invalid mission configuration: " + join_errors(validation_errors));
-    }
+    validate_config_file(path, [&config, map_dimensions] {
+        config.validate(map_dimensions);
+    });
 
     return config;
 }
@@ -467,4 +437,4 @@ SparseTextMap parse_map_input(const std::filesystem::path& path) {
     return map;
 }
 
-} // namespace cpp_course
+} // namespace drone_mapper
