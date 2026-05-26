@@ -3,10 +3,16 @@
 #include "core/Units.h"
 
 #include <cstddef>
-#include <string>
+#include <optional>
 #include <vector>
 
 namespace drone_mapper {
+
+struct MapDimensions {
+    std::size_t x_size{};
+    std::size_t y_size{};
+    std::size_t z_size{};
+};
 
 // Static scan settings for a LiDAR-like sensor.
 struct LidarConfig {
@@ -28,8 +34,7 @@ struct DroneConfig {
         1,
     };
 
-    [[nodiscard]] std::vector<std::string> validate() const;
-    [[nodiscard]] bool is_valid() const;
+    void validate() const;
 };
 
 struct MappingBoundaries {
@@ -41,7 +46,7 @@ struct MappingBoundaries {
     ZLength max_z{0.0 * z_extent[cm]};
 
     [[nodiscard]] bool contains(const Position3D& position) const noexcept;
-    [[nodiscard]] std::vector<std::string> validate() const;
+    void validate() const;
 };
 
 struct MappingResolution {
@@ -58,8 +63,7 @@ struct MissionConfig {
     MappingResolution resolution{};
     std::vector<Position3D> recharge_positions{};
 
-    [[nodiscard]] std::vector<std::string> validate() const;
-    [[nodiscard]] bool is_valid() const;
+    void validate(std::optional<MapDimensions> map_dimensions = std::nullopt) const;
 };
 
 } // namespace drone_mapper

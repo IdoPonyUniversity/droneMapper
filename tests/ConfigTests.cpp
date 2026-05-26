@@ -4,16 +4,21 @@
 
 #include <gtest/gtest.h>
 
-#include <algorithm>
+#include <stdexcept>
 #include <string>
-#include <vector>
 
 using namespace drone_mapper;
 
 namespace {
 
-[[nodiscard]] bool contains_error(const std::vector<std::string>& errors, const std::string& expected) {
-    return std::find(errors.begin(), errors.end(), expected) != errors.end();
+template <typename Callable>
+void expect_runtime_error_contains(Callable&& callable, const std::string& needle) {
+    try {
+        callable();
+        FAIL() << "expected std::runtime_error containing: " << needle;
+    } catch (const std::runtime_error& error) {
+        EXPECT_NE(std::string(error.what()).find(needle), std::string::npos) << error.what();
+    }
 }
 
 } // namespace
@@ -29,7 +34,7 @@ TEST(ConfigTests, DroneConfigDefaultsMatchDocumentedCapabilities) {
     EXPECT_EQ(config.lidar.beam_length_max, 10.0 * cm);
     EXPECT_EQ(config.lidar.circle_spacing, 1.0 * cm);
     EXPECT_EQ(config.lidar.fov_circles, 1U);
-    EXPECT_TRUE(config.is_valid());
+    EXPECT_NO_THROW(config.validate());
 }
 
 TEST(ConfigTests, DroneConfigStoresCustomSphereRadius) {
@@ -46,14 +51,9 @@ TEST(ConfigTests, DroneConfigValidationRejectsInvalidPhysicalCapabilities) {
     config.max_advance = -1.0 * cm;
     config.max_elevate = 0.0 * cm;
 
-    const std::vector<std::string> errors = config.validate();
-
-    EXPECT_FALSE(errors.empty());
-    EXPECT_FALSE(config.is_valid());
-    EXPECT_TRUE(contains_error(errors, "drone_radius must be positive"));
-    EXPECT_TRUE(contains_error(errors, "max_rotate must be positive"));
-    EXPECT_TRUE(contains_error(errors, "max_advance must be positive"));
-    EXPECT_TRUE(contains_error(errors, "max_elevate must be positive"));
+    expect_runtime_error_contains([&config] {
+        config.validate();
+    }, "drone_radius must be positive");
 }
 
 TEST(ConfigTests, DroneConfigValidationRejectsInvalidLidarCapabilities) {
@@ -63,13 +63,9 @@ TEST(ConfigTests, DroneConfigValidationRejectsInvalidLidarCapabilities) {
     config.lidar.circle_spacing = 0.0 * cm;
     config.lidar.fov_circles = 0;
 
-    const std::vector<std::string> errors = config.validate();
-
-    EXPECT_FALSE(config.is_valid());
-    EXPECT_TRUE(contains_error(errors, "lidar.beam_length_min must be non-negative"));
-    EXPECT_TRUE(contains_error(errors, "lidar.beam_length_max must be greater than lidar.beam_length_min"));
-    EXPECT_TRUE(contains_error(errors, "lidar.circle_spacing must be positive"));
-    EXPECT_TRUE(contains_error(errors, "lidar.fov_circles must be at least 1"));
+    expect_runtime_error_contains([&config] {
+        config.validate();
+    }, "lidar.beam_length_min must be non-negative");
 }
 
 TEST(ConfigTests, MissionConfigDefaultsRepresentSingleCellMission) {
@@ -89,7 +85,7 @@ TEST(ConfigTests, MissionConfigDefaultsRepresentSingleCellMission) {
     EXPECT_EQ(config.resolution.xy_decimal_places, 0);
     EXPECT_EQ(config.resolution.z_decimal_places, 0);
     EXPECT_TRUE(config.recharge_positions.empty());
-    EXPECT_TRUE(config.is_valid());
+    EXPECT_NO_THROW(config.validate());
 }
 
 TEST(ConfigTests, MappingBoundariesCheckInclusiveContainment) {
@@ -113,11 +109,9 @@ TEST(ConfigTests, MissionConfigValidationRejectsInvalidBoundariesAndUnsupportedR
     config.boundaries.max_x = 1.0 * x_extent[cm];
     config.resolution.xy_decimal_places = 1;
 
-    const std::vector<std::string> errors = config.validate();
-
-    EXPECT_FALSE(config.is_valid());
-    EXPECT_TRUE(contains_error(errors, "boundary min_x must be less than or equal to max_x"));
-    EXPECT_TRUE(contains_error(errors, "only 0 decimal-place XY/Z resolution is supported"));
+    expect_runtime_error_contains([&config] {
+        config.validate();
+    }, "boundary min_x must be less than or equal to max_x");
 }
 
 TEST(ConfigTests, MissionConfigValidationRejectsInitialPositionOutsideBoundaries) {
@@ -127,8 +121,15 @@ TEST(ConfigTests, MissionConfigValidationRejectsInitialPositionOutsideBoundaries
     config.boundaries.max_z = 2.0 * z_extent[cm];
     config.initial_position = test::make_position(3.0, 1.0, 1.0);
 
-    const std::vector<std::string> errors = config.validate();
+    expect_runtime_error_contains([&config] {
+        config.validate();
+    }, "initial_position must be inside mission boundaries");
+}
 
-    EXPECT_FALSE(config.is_valid());
-    EXPECT_TRUE(contains_error(errors, "initial_position must be inside mission boundaries"));
+TEST(ConfigTests, MissionConfigValidationRejectsEmptyMapDimensions) {
+    MissionConfig config;
+
+    expect_runtime_error_contains([&config] {
+        config.validate(MapDimensions{0, 1, 1});
+    }, "map dimensions must be non-empty");
 }
