@@ -4,7 +4,7 @@
 
 This repository is a C++20 CMake project for a mock LiDAR sensor over 3D voxel maps.
 
-- `src/`: public headers, interfaces, units, configuration domain models, class declarations, and implementations for the library target `drone_mapper_lib`.
+- `src/`: public headers, interfaces, units, configuration domain models, class declarations, implementations for the library target `drone_mapper_lib`, and the current `main.cpp` entry point for the `drone_mapper` executable.
 - `tests/`: GoogleTest unit tests and shared helpers.
 - `examples/`: runnable sample programs, currently `mock_lidar_test.cpp`.
 - `data_maps/`: sample `.npy` voxel maps used by examples and tests.
@@ -27,7 +27,7 @@ Configures `build/` using FetchContent for dependencies.
 cmake --build build
 ```
 
-Builds the `drone_mapper_lib` library, `mock_lidar_test`, and `drone_mapper_tests`.
+Builds the `drone_mapper` executable, `drone_mapper_lib` library, and `drone_mapper_tests`.
 
 ```bash
 ctest --test-dir build --output-on-failure

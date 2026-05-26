@@ -42,6 +42,12 @@ target_include_directories(drone_mapper_lib PUBLIC src)
 target_compile_features(drone_mapper_lib PUBLIC cxx_std_20)
 target_link_libraries(drone_mapper_lib PUBLIC mp-units::mp-units TinyNPY)
 
+# --- Assignment executable
+add_executable(drone_mapper
+  src/main.cpp
+)
+target_link_libraries(drone_mapper PRIVATE drone_mapper_lib)
+
 # --- Tests
 enable_testing()
 option(DRONE_MAPPER_BUILD_TESTS "Build unit tests" ON)
