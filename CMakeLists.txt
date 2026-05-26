@@ -24,10 +24,9 @@ FetchContent_MakeAvailable(mp-units)
 # --- TinyNPY
 FetchContent_Declare(
   TinyNPY
-  GIT_REPOSITORY https://github.com/aminya/TinyNPY.git
-  GIT_TAG        v0.2.1
+  GIT_REPOSITORY https://github.com/cdcseacave/TinyNPY.git
+  GIT_TAG        v1.1
 )
-set(TINYNPY_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(TinyNPY)
 
 # --- Core library: everything except main() lives here so tests can link it.
