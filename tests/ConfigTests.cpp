@@ -1,6 +1,6 @@
 #include "TestHelpers.h"
 
-#include "Config.h"
+#include "config/Config.h"
 
 #include <gtest/gtest.h>
 

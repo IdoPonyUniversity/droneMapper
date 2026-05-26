@@ -2,10 +2,10 @@
 
 #include <optional>
 
-#include "Config.h"
-#include "IMap3D.h"
-#include "LidarSensor.h"
-#include "PositionSensor.h"
+#include "config/Config.h"
+#include "map/IMap3D.h"
+#include "sensors/LidarSensor.h"
+#include "sensors/PositionSensor.h"
 
 namespace drone_mapper {
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Config.h"
-#include "SparseTextMap.h"
+#include "config/Config.h"
+#include "map/SparseTextMap.h"
 
 #include <cstddef>
 #include <filesystem>

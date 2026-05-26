@@ -1,6 +1,6 @@
-#include "InputParsers.h"
+#include "io/InputParsers.h"
 
-#include "VoxelGrid.h"
+#include "map/VoxelGrid.h"
 
 #include <algorithm>
 #include <cctype>

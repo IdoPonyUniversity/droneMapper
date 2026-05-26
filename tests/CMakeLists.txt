@@ -11,7 +11,7 @@ add_executable(drone_mapper_tests
 )
 target_include_directories(drone_mapper_tests
   PRIVATE
-    ${DRONE_MAPPER_SOURCE_DIRS}
+    ${DRONE_MAPPER_INCLUDE_DIR}
 )
 target_link_libraries(drone_mapper_tests
   PRIVATE

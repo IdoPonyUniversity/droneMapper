@@ -32,18 +32,7 @@ FetchContent_MakeAvailable(TinyNPY)
 # --- Shared production sources. The app is intentionally a single executable
 # target; tests compile these same sources directly instead of linking a
 # repository library target.
-set(DRONE_MAPPER_SOURCE_DIRS
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/app
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/config
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/core
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/io
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/map
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/movement
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/sensors
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/simulation
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/drone
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/drone/algorithms
-)
+set(DRONE_MAPPER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(DRONE_MAPPER_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/config/Config.cpp
@@ -59,7 +48,7 @@ add_executable(drone_mapper
   ${DRONE_MAPPER_SOURCES}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/app/main.cpp
 )
-target_include_directories(drone_mapper PRIVATE ${DRONE_MAPPER_SOURCE_DIRS})
+target_include_directories(drone_mapper PRIVATE ${DRONE_MAPPER_INCLUDE_DIR})
 target_compile_features(drone_mapper PRIVATE cxx_std_20)
 target_link_libraries(drone_mapper PRIVATE mp-units::mp-units TinyNPY)
 

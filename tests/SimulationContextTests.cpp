@@ -1,8 +1,8 @@
 #include "TestHelpers.h"
 
-#include "IMap3D.h"
-#include "SimulationContext.h"
-#include "SparseTextMap.h"
+#include "map/IMap3D.h"
+#include "simulation/SimulationContext.h"
+#include "map/SparseTextMap.h"
 
 #include <gtest/gtest.h>
 

@@ -1,7 +1,7 @@
 #include "TestHelpers.h"
 
-#include "MockLidarSensor.h"
-#include "PositionSensor.h"
+#include "sensors/MockLidarSensor.h"
+#include "sensors/PositionSensor.h"
 
 #include <gtest/gtest.h>
 

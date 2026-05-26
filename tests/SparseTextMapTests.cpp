@@ -1,6 +1,6 @@
 #include "TestHelpers.h"
 
-#include "SparseTextMap.h"
+#include "map/SparseTextMap.h"
 
 #include <gtest/gtest.h>
 

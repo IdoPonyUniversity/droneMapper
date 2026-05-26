@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "IMap3D.h"
+#include "map/IMap3D.h"
 
 namespace drone_mapper {
 

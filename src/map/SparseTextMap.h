@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IMap3D.h"
+#include "map/IMap3D.h"
 
 #include <cstddef>
 #include <cstdint>

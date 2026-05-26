@@ -1,4 +1,4 @@
-#include "VoxelGrid.h"
+#include "map/VoxelGrid.h"
 
 #include <cstdint>
 #include <typeinfo>

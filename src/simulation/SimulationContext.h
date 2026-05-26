@@ -1,7 +1,7 @@
 #pragma once
 
-#include "IMap3D.h"
-#include "Units.h"
+#include "map/IMap3D.h"
+#include "core/Units.h"
 
 namespace drone_mapper {
 

@@ -1,6 +1,6 @@
 #include "TestHelpers.h"
 
-#include "VoxelGrid.h"
+#include "map/VoxelGrid.h"
 
 #include <gtest/gtest.h>
 
