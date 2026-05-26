@@ -34,13 +34,11 @@ FetchContent_MakeAvailable(TinyNPY)
 # repository library target.
 set(DRONE_MAPPER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-set(DRONE_MAPPER_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/config/Config.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/io/InputParsers.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/sensors/MockLidarSensor.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/simulation/SimulationContext.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/map/SparseTextMap.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/map/VoxelGrid.cpp
+file(GLOB_RECURSE DRONE_MAPPER_SOURCES CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
+list(REMOVE_ITEM DRONE_MAPPER_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/app/main.cpp
 )
 
 # --- Assignment executable

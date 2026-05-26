@@ -55,6 +55,6 @@ Recent commits use short, imperative summaries, for example `Remove positionAfte
 
 ## Agent-Specific Instructions
 
-Do not rewrite unrelated files or generated outputs. Preserve sample map files unless the task explicitly requires changing test fixtures. When adding dependencies, update `CMakeLists.txt` with appropriate `FetchContent_Declare` and link targets. When adding production `.cpp` files, add them to `DRONE_MAPPER_SOURCES` so both `drone_mapper` and `drone_mapper_tests` compile them.
+Do not rewrite unrelated files or generated outputs. Preserve sample map files unless the task explicitly requires changing test fixtures. When adding dependencies, update `CMakeLists.txt` with appropriate `FetchContent_Declare` and link targets.
 Keep `tasks.md` updated when assignment implementation status or task breakdown changes.
 ALWAYS READ assignment.md - these are the instructions for this project.
