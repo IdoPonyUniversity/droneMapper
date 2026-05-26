@@ -22,15 +22,11 @@ Note - The implementation for PositionSensor is ad-hoc. In your project these wi
 ## Project Structure
 
 ```text
-include/cpp_course/      Public interfaces and type definitions
-src/                     Implementation files
-examples/                Example executable
+src/                     Public interfaces, type definitions, and implementation files
 tests/                   Unit tests
 data_maps/               Example voxel maps
 .devcontainer/           Development container setup
-CMakeLists.txt           CMake build configuration
-CMakePresets.json        CMake preset configuration
-vcpkg.json               Dependency list
+CMakeLists.txt           CMake build configuration (uses FetchContent for dependencies)
 ```
 
 ## Building the Project
@@ -38,11 +34,9 @@ vcpkg.json               Dependency list
 Open the project inside the provided container, then run:
 
 ```bash
-cmake --preset default
-cmake --build --preset default
+cmake -B build
+cmake --build build
 ```
-
-This creates the build output under the `build/` directory.
 
 ## Running the Example
 
@@ -69,7 +63,7 @@ ctest --test-dir build --output-on-failure
 Or run the test executable directly:
 
 ```bash
-./build/cpp_course_tests
+./build/drone_mapper_tests
 ```
 
 ## Main Components
@@ -105,7 +99,7 @@ Configuration text file rules:
 - Numeric angles are in degrees.
 - Coordinates are written as `x,y,z` in centimeters.
 
-A small manual-run fixture is available under [`sample_inputs/basic/`](sample_inputs/basic/). The parsers in `include/cpp_course/InputParsers.h` implement the concrete config keys and map file format documented here, returning parsed config/map objects and throwing `std::runtime_error` for invalid input.
+A small manual-run fixture is available under [`sample_inputs/basic/`](sample_inputs/basic/). The parsers in `src/InputParsers.h` implement the concrete config keys and map file format documented here, returning parsed config/map objects and throwing `std::runtime_error` for invalid input.
 
 ### `drone_config.txt`
 

@@ -1,11 +1,11 @@
-#include <cpp_course/MockLidarSensor.h>
+#include "MockLidarSensor.h"
 
 #include <mp-units/systems/si/math.h>
 
 #include <algorithm>
 #include <optional>
 
-namespace cpp_course {
+namespace drone_mapper {
 
 namespace {
 
@@ -128,4 +128,4 @@ std::optional<PhysicalLength> MockLidarSensor::traceBeam(const Orientation& beam
     return std::nullopt;
 }
 
-} // namespace cpp_course
+} // namespace drone_mapper

@@ -7,9 +7,9 @@
 #include <string>
 #include <vector>
 
-#include <cpp_course/IMap3D.h>
+#include "IMap3D.h"
 
-namespace cpp_course {
+namespace drone_mapper {
 
 // Occupancy map backed by a row-major 3D NumPy array with shape [X, Y, Z].
 // Coordinates are interpreted in centimeters and converted with floor().
@@ -51,4 +51,4 @@ private:
 
 };
 
-} // namespace cpp_course
+} // namespace drone_mapper

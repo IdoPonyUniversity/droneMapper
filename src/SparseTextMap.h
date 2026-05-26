@@ -1,12 +1,12 @@
 #pragma once
 
-#include <cpp_course/IMap3D.h>
+#include "IMap3D.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <unordered_set>
 
-namespace cpp_course {
+namespace drone_mapper {
 
 // In-memory IMap3D backed by a sparse set of occupied 1-cm voxels and
 // fixed [0..x_size) x [0..y_size) x [0..z_size) bounds. Used by the
@@ -39,4 +39,4 @@ private:
     std::unordered_set<std::uint64_t> occupied_{};
 };
 
-} // namespace cpp_course
+} // namespace drone_mapper

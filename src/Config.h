@@ -1,12 +1,12 @@
 #pragma once
 
-#include <cpp_course/Units.h>
+#include "Units.h"
 
 #include <cstddef>
 #include <string>
 #include <vector>
 
-namespace cpp_course {
+namespace drone_mapper {
 
 // Static scan settings for a LiDAR-like sensor.
 struct LidarConfig {
@@ -62,4 +62,4 @@ struct MissionConfig {
     [[nodiscard]] bool is_valid() const;
 };
 
-} // namespace cpp_course
+} // namespace drone_mapper

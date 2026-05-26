@@ -1,10 +1,10 @@
 #include "TestHelpers.h"
 
-#include <cpp_course/SparseTextMap.h>
+#include "SparseTextMap.h"
 
 #include <gtest/gtest.h>
 
-using namespace cpp_course;
+using namespace drone_mapper;
 
 TEST(SparseTextMapTests, EmptyMapReturnsZeroEverywhere) {
     const SparseTextMap map(5, 5, 5);

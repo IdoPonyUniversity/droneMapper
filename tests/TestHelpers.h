@@ -1,13 +1,13 @@
 #pragma once
 
-#include <cpp_course/Units.h>
+#include "Units.h"
 
 #include <mp-units/systems/si/math.h>
 
 #include <cmath>
 #include <tuple>
 
-namespace cpp_course::test {
+namespace drone_mapper::test {
 
 inline Position3D make_position(double x_cm, double y_cm, double z_cm) {
     return {
@@ -72,4 +72,4 @@ inline double wrap_degrees(double angle) {
     return angle;
 }
 
-} // namespace cpp_course::test
+} // namespace drone_mapper::test

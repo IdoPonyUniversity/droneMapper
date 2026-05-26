@@ -1,12 +1,12 @@
 #include "TestHelpers.h"
 
-#include <cpp_course/IMap3D.h>
-#include <cpp_course/SimulationContext.h>
-#include <cpp_course/SparseTextMap.h>
+#include "IMap3D.h"
+#include "SimulationContext.h"
+#include "SparseTextMap.h"
 
 #include <gtest/gtest.h>
 
-using namespace cpp_course;
+using namespace drone_mapper;
 
 namespace {
 

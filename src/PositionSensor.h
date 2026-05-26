@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cpp_course/Units.h>
+#include "Units.h"
 
-namespace cpp_course {
+namespace drone_mapper {
 
 // Supplies the current world-space pose of the sensor platform.
 class IPositionSensor {
@@ -13,4 +13,4 @@ public:
     [[nodiscard]] virtual Orientation heading() const = 0;
 };
 
-} // namespace cpp_course
+} // namespace drone_mapper

@@ -1,6 +1,6 @@
-#include <cpp_course/InputParsers.h>
+#include "InputParsers.h"
 
-#include <cpp_course/VoxelGrid.h>
+#include "VoxelGrid.h"
 
 #include <algorithm>
 #include <cctype>
@@ -15,7 +15,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace cpp_course {
+namespace drone_mapper {
 
 namespace {
 
@@ -467,4 +467,4 @@ SparseTextMap parse_map_input(const std::filesystem::path& path) {
     return map;
 }
 
-} // namespace cpp_course
+} // namespace drone_mapper

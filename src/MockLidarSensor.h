@@ -2,12 +2,12 @@
 
 #include <optional>
 
-#include <cpp_course/Config.h>
-#include <cpp_course/IMap3D.h>
-#include <cpp_course/LidarSensor.h>
-#include <cpp_course/PositionSensor.h>
+#include "Config.h"
+#include "IMap3D.h"
+#include "LidarSensor.h"
+#include "PositionSensor.h"
 
-namespace cpp_course {
+namespace drone_mapper {
 
 // Test/demonstration LiDAR that ray marches through an IMap3D from the current
 // IPositionSensor pose.
@@ -32,4 +32,4 @@ private:
     const IPositionSensor& pos_sensor_;
 };
 
-} // namespace cpp_course
+} // namespace drone_mapper

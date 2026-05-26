@@ -1,6 +1,6 @@
 #include "TestHelpers.h"
 
-#include <cpp_course/InputParsers.h>
+#include "InputParsers.h"
 
 #include <gtest/gtest.h>
 
@@ -10,17 +10,17 @@
 #include <stdexcept>
 #include <string>
 
-using namespace cpp_course;
+using namespace drone_mapper;
 
 namespace {
 
 [[nodiscard]] std::filesystem::path sample_input_path(const char* filename) {
-    return std::filesystem::path(CPP_COURSE_SOURCE_DIR) / "sample_inputs" / "basic" / filename;
+    return std::filesystem::path(DRONE_MAPPER_SOURCE_DIR) / "sample_inputs" / "basic" / filename;
 }
 
 [[nodiscard]] std::filesystem::path unique_temp_dir(const std::string& test_name) {
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-    std::filesystem::path dir = std::filesystem::temp_directory_path() / ("cpp_course_" + test_name + "_" + std::to_string(stamp));
+    std::filesystem::path dir = std::filesystem::temp_directory_path() / ("drone_mapper_" + test_name + "_" + std::to_string(stamp));
     std::filesystem::create_directories(dir);
     return dir;
 }

@@ -1,14 +1,14 @@
 #include "TestHelpers.h"
 
-#include <cpp_course/MockLidarSensor.h>
-#include <cpp_course/PositionSensor.h>
+#include "MockLidarSensor.h"
+#include "PositionSensor.h"
 
 #include <gtest/gtest.h>
 
 #include <set>
 #include <tuple>
 
-using namespace cpp_course;
+using namespace drone_mapper;
 
 namespace {
 

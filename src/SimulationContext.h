@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cpp_course/IMap3D.h>
-#include <cpp_course/Units.h>
+#include "IMap3D.h"
+#include "Units.h"
 
-namespace cpp_course {
+namespace drone_mapper {
 
 // Owns the simulator's ground-truth state for one drone: its true pose
 // (Position3D + Orientation) and a reference to the ground-truth IMap3D.
@@ -37,4 +37,4 @@ private:
     Orientation heading_;
 };
 
-} // namespace cpp_course
+} // namespace drone_mapper

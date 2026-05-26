@@ -1,6 +1,6 @@
-#include <cpp_course/Config.h>
+#include "Config.h"
 
-namespace cpp_course {
+namespace drone_mapper {
 
 namespace {
 
@@ -104,4 +104,4 @@ bool MissionConfig::is_valid() const {
     return validate().empty();
 }
 
-} // namespace cpp_course
+} // namespace drone_mapper
