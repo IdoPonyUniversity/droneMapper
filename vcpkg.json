@@ -1,7 +1,0 @@
-{
-  "dependencies": [
-    "mp-units",
-    "tinynpy",
-    "gtest"
-  ]
-}

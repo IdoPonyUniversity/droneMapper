@@ -1,6 +1,6 @@
 #include "TestHelpers.h"
 
-#include <cpp_course/Config.h>
+#include "config/Config.h"
 
 #include <gtest/gtest.h>
 
@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-using namespace cpp_course;
+using namespace drone_mapper;
 
 namespace {
 

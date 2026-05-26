@@ -1,17 +1,17 @@
 #include "TestHelpers.h"
 
-#include <cpp_course/VoxelGrid.h>
+#include "map/VoxelGrid.h"
 
 #include <gtest/gtest.h>
 
 #include <filesystem>
 
-using namespace cpp_course;
+using namespace drone_mapper;
 
 namespace {
 
 std::string map_path(const char* filename) {
-    return (std::filesystem::path(CPP_COURSE_SOURCE_DIR) / "data_maps" / filename).string();
+    return (std::filesystem::path(DRONE_MAPPER_SOURCE_DIR) / "data_maps" / filename).string();
 }
 
 } // namespace

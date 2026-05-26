@@ -4,7 +4,7 @@
 #include <mp-units/systems/isq.h>
 #include <mp-units/systems/si/unit_symbols.h>
 
-namespace cpp_course {
+namespace drone_mapper {
 
 namespace mp = mp_units;
 namespace isq = mp_units::isq;
@@ -43,4 +43,4 @@ struct Orientation {
 };
 
 
-} // namespace cpp_course
+} // namespace drone_mapper

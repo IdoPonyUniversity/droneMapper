@@ -1,10 +1,10 @@
-#include <cpp_course/VoxelGrid.h>
+#include "map/VoxelGrid.h"
 
 #include <cstdint>
 #include <typeinfo>
 #include <cmath>
 #include <stdexcept>
-namespace cpp_course {
+namespace drone_mapper {
 
 namespace {
 
@@ -121,4 +121,4 @@ std::optional<std::size_t> VoxelGrid::coordinate_to_index(ZLength coordinate) {
     return centimeters_to_index(coordinate.force_numerical_value_in(cm));
 }
 
-} // namespace cpp_course
+} // namespace drone_mapper

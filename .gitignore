@@ -9,9 +9,8 @@ compile_commands.json
 CTestTestfile.cmake
 Testing/
 
-# vcpkg generated dependencies
-vcpkg_installed/
-vcpkg-manifest-install.log
+# FetchContent generated dependencies
+_deps/
 
 # Binaries and libraries
 *.exe
